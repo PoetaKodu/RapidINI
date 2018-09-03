@@ -9,8 +9,14 @@
 namespace rapid_ini
 {
 
+/// <summary>
+/// Provides static method `read` that parses string containing contents of the INI file.
+/// </summary>
 class IniReader
 {
+	/// <summary>
+	/// Enumeration of all possible INI reader algorithm states.
+	/// </summary>
 	enum class State
 	{
 		ReadingSectionName,
@@ -21,8 +27,19 @@ class IniReader
 	};
 
 public:
+	/// <summary>
+	/// Type of the `read` method result.
+	/// </summary>
 	using ReadResultType = std::map<std::string, std::string>;
 
+	/// <summary>
+	/// Reads INI-formatted string and returns map of read properties.
+	/// </summary>
+	/// <param name="data_">Pointer to string's first character</param>
+	/// <param name="numberOfCharacters_">Number of characters in the string (without the null terminator).</param>
+	/// <returns>
+	/// Container that maps every key name (prefixed with its section name) to it's value.
+	/// </returns>
 	static ReadResultType read(char const* data_, std::size_t numberOfCharacters_)
 	{
 		using SizeType = std::string::size_type;
@@ -110,13 +127,23 @@ public:
 		return result;
 	}
 
-	static ReadResultType read(std::string contents_)
+	/// <summary>
+	/// Reads INI-formatted string and returns map of read properties.
+	/// </summary>
+	/// <param name="contents">INI-formatted string to read from.</param>
+	/// <returns>
+	/// Container that maps every key name (prefixed with its section name) to it's value.
+	/// </returns>
+	static ReadResultType read(std::string const & contents_)
 	{
 		return read(contents_.data(), contents_.length());
 	}
 
 private:
 
+	/// <summary>
+	/// Handles the line end while read algorithm is working. Written to avoid unnecessary repeating code.
+	/// </summary>
 	static void handleLineEnd(ReadResultType& result_, State & state_, std::string & currentSection_, std::string const & sectionName_,
 		std::string const & keyName_, std::string const & keyValue_, bool valueHasOnlySpaces_)
 	{
