@@ -5,10 +5,10 @@
 #include <stdexcept>
 #include <exception>
 #include <chrono>
+#include <thread>
 
 // RapidINI reader:
 #include <RapidINI/IniContainer.hpp>
-#include <thread>
 
 namespace ini = rapid_ini;
 
