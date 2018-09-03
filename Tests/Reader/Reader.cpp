@@ -47,7 +47,7 @@ void testReader(std::string const & inputFile_)
 	std::string const fileContents = details::sequentialReadFile(inputFile_);
 	
 	// 2. Parse INI and pass the result to the IniContainer:
-	ini::IniContainer container( ini::IniReader::parse(fileContents) );
+	ini::IniContainer container( ini::IniReader::read(fileContents) );
 
 	// 3. Display every property:
 	std::cout << "Following properties were found:\n";

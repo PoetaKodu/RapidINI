@@ -23,13 +23,13 @@ class IniReader
 	};
 
 public:
-	using ParseReturnType = std::map<std::string, std::string>;
+	using ReadResultType = std::map<std::string, std::string>;
 
-	static ParseReturnType parse(char const* data_, std::size_t numberOfCharacters_)
+	static ReadResultType read(char const* data_, std::size_t numberOfCharacters_)
 	{
 		using SizeType = std::string::size_type;
 
-		ParseReturnType result;
+		ReadResultType result;
 		State state = State::Unknown;
 
 		std::string currentSection;
@@ -112,14 +112,14 @@ public:
 		return result;
 	}
 
-	static ParseReturnType parse(std::string contents_)
+	static ReadResultType read(std::string contents_)
 	{
-		return parse(contents_.data(), contents_.length());
+		return read(contents_.data(), contents_.length());
 	}
 
 private:
 
-	static void handleLineEnd(ParseReturnType& result_, State & state_, std::string & currentSection_, std::string const & sectionName_,
+	static void handleLineEnd(ReadResultType& result_, State & state_, std::string & currentSection_, std::string const & sectionName_,
 		std::string const & keyName_, std::string const & keyValue_, bool valueHasOnlySpaces_)
 	{
 		std::string prefix = currentSection_.empty()

@@ -13,26 +13,26 @@ namespace rapid_ini
 class IniContainer
 {
 public:
-	using ParseResultType = IniReader::ParseReturnType;
+	using ReadResultType = IniReader::ParseReturnType;
 
 	IniContainer() = default;
 
-	IniContainer( ParseResultType && parseResult_ )
+	IniContainer(ReadResultType && parseResult_ )
 	{
-		_properties = std::forward<ParseResultType>(parseResult_);
+		_properties = std::forward<ReadResultType>(parseResult_);
 	}
 
-	IniContainer( ParseResultType const & parseResult_ )
+	IniContainer(ReadResultType const & parseResult_ )
 	{
 		_properties = parseResult_;
 	}
 
-	void importProperties(ParseResultType && parseResult_)
+	void importProperties(ReadResultType && parseResult_)
 	{
-		_properties = std::forward<ParseResultType>(parseResult_);
+		_properties = std::forward<ReadResultType>(parseResult_);
 	}
 
-	void importProperties( ParseResultType const & parseResult_ )
+	void importProperties(ReadResultType const & parseResult_ )
 	{
 		_properties = parseResult_;
 	}
@@ -83,13 +83,13 @@ public:
 		return this->getValueOr(sectionName_ + "." + keyName_, valueIfNotFound_);
 	}
 
-	ParseResultType const& getProperties() const
+	ReadResultType const& getProperties() const
 	{
 		return _properties;
 	}
 
 private:
-	ParseResultType _properties;
+	ReadResultType _properties;
 };
 
 }
