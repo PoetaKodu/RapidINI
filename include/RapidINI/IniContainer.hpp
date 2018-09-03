@@ -13,7 +13,7 @@ namespace rapid_ini
 class IniContainer
 {
 public:
-	using ReadResultType = IniReader::ParseReturnType;
+	using ReadResultType = IniReader::ReadResultType;
 
 	IniContainer() = default;
 
