@@ -8,8 +8,6 @@
 
 namespace rapid_ini
 {
-	
-// Header part:
 
 class IniReader
 {
@@ -142,9 +140,5 @@ private:
 		state_ = State::Unknown;
 	}
 };
-
-
-// Source part:
-
 
 }
