@@ -42,7 +42,7 @@ It also won't read directly from the file. Checkout how to read entire file sequ
 ## FAQ:
 
 - **Can it run on pre-C++11 compiler?**  
-  No, it cant. I use plenty of `auto`s here which are available (in this context) since C++11. If you are using pre-C++11 compiler please update it. We now have C++17 and C++20 is coming out soon.
+  No, it can't. I use plenty of `auto`s here which are available (in this context) since C++11. If you are using pre-C++11 compiler please update it. We now have C++17 and C++20 is coming out soon.
 
 - **What is the best way to use it?**  
   Clone the repo to the disk, include path: `path/to/RapidINI_repo/include` and
