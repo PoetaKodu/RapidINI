@@ -12,7 +12,7 @@ namespace rapid_ini
 /// <summary>
 /// Provides static method `read` that parses string containing contents of the INI file.
 /// </summary>
-class IniReader
+class Reader
 {
 	/// <summary>
 	/// Enumeration of all possible INI reader algorithm states.
@@ -42,7 +42,14 @@ public:
 	/// </returns>
 	static ReadResultType read(char const* data_, std::size_t numberOfCharacters_)
 	{
+		
+		// Types and settings:
 		using SizeType = std::string::size_type;
+
+		// Memory efficiency settings:
+		constexpr int sectionNamePreReservedBytes	= 64;
+		constexpr int keyNamePreReservedBytes		= 64;
+		constexpr int keyValuePreReservedBytes		= 256;
 
 		ReadResultType result;
 		State state = State::Unknown;
@@ -82,12 +89,14 @@ public:
 				{
 					state = State::ReadingSectionName;
 					sectionName.clear();
-					keyName += *it;
+					sectionName.reserve(sectionNamePreReservedBytes);
 				}
 				else
 				{
 					state = State::ReadingKeyName;
 					keyName.clear();
+					keyName.reserve(keyNamePreReservedBytes);
+
 					keyName += *it;
 				}
 			}
@@ -108,6 +117,8 @@ public:
 					// Start reading value:
 					state = State::ReadingKeyValue;
 					keyValue.clear();
+					keyValue.reserve(keyValuePreReservedBytes);
+
 					valueHasOnlySpaces = true;
 				}
 				else
