@@ -3,15 +3,17 @@ A robust, header only INI file reader and writer (planned) written in pure C++11
 
 ## How to use?
 
-Include the files [`IniReader.hpp`](include/RapidINI/IniReader.hpp), [`IniWriter.hpp`](include/RapidINI/IniWriter.hpp) and [`IniContainer.hpp`](include/RapidINI/IniContainer.hpp) (located inside [`include/RapidINI/`](include/RapidINI`) directory) depending on which classes you want to use.
+Include the files [`Reader.hpp`](include/RapidINI/Reader.hpp), [`Writer.hpp`](include/RapidINI/Writer.hpp) and [`Container.hpp`](include/RapidINI/Container.hpp) (located inside [`include/RapidINI/`](include/RapidINI`) directory) depending on which classes you want to use.
 
 ## Classes
 
 RapidINI consists of three classes:
 
-- `IniReader` - provides static method `read`, which reads INI file that you need to provide as a single `std::string` (or `char` array).
-- `IniWriter` (planned) - provides multiple ways of saving `IniContainer` to the `std::string`.
-- `IniContainer` - wraps around the result of `IniReader::read()` method. Provides handy way to manipulate properties.
+- `Reader` - provides static method `read`, which reads INI file that you need to provide as a single `std::string` (or `char` array).
+- `Writer` **(not implemented yet)** - provides multiple ways of saving `Container` to the `std::string`.
+- `Container` - wraps around the result of `Reader::read()` method. Provides handy way to manipulate properties.
+
+These classes are located inside `rapid_ini` namespace.
 
 ## Example
 
@@ -28,8 +30,9 @@ MaxEnergy=200
 MovementSpeed=400
 Name=Bezimienny
 )";
-ini::IniContainer container( ini::IniReader::read(fileContents) );
+ini::Container container( ini::Reader::read(fileContents) );
 
+// Note: letter case does matter.
 std::cout << "Our player has MaxHealth equal to " << container.getValueOr("Player.MaxHealth", "100" ); // use 100 by default.
 ```
 
@@ -47,7 +50,7 @@ It also won't read directly from the file. Checkout how to read entire file sequ
 - **What is the best way to use it?**  
   Clone the repo to the disk, include path: `path/to/RapidINI_repo/include` and
   ```cpp
-  #include <RapidINI/IniReader.hpp>
+  #include <RapidINI/Reader.hpp>
   // etc
   ```
 
