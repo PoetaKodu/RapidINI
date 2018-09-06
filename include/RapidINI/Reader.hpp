@@ -26,11 +26,113 @@ class Reader
 		Unknown
 	};
 
+	/// <summary>
+	/// Determines whether specified character is a whitespace.
+	/// </summary>
+	template <typename TChar>
+	static bool isSpace(TChar const & character_)
+	{
+		return character_ == ' ' || character_ == '\t';
+	}
 public:
+
 	/// <summary>
 	/// Type of the `read` method result.
 	/// </summary>
 	using ReadResultType = std::map<std::string, std::string>;
+
+	/// <summary>
+	/// Reads INI-formatted string and returns map of read properties.
+	/// </summary>
+	/// <param name="first_">Iterator to the first collection element.</param>
+	/// <param name="last_">Iterator to the one-past-last collection element.</param>
+	/// <returns>
+	/// Container that maps every key name (prefixed with its section name) to it's value.
+	/// </returns>
+	template <typename TForwardIterator>
+	static ReadResultType read(TForwardIterator first_, TForwardIterator last_)
+	{
+		ReadResultType result;
+		State state = State::Unknown;
+
+		std::string currentSection;
+		std::string keyName;
+		std::string keyValue;
+
+		TForwardIterator sectionNameFirst = last_;
+		TForwardIterator keyNameFirst = last_;
+		TForwardIterator keyValueFirst = last_;
+
+		bool valueHasOnlySpaces = true;
+
+		for (auto it = first_; it != last_; ++it)
+		{
+			typename std::iterator_traits<TForwardIterator>::value_type character = *it;
+
+			// Skip the '\r' character.
+			if (character == '\r')
+				continue;
+
+			// Handle new line character:
+			if (character == '\n')
+			{
+				handleLineEnd(result, state, currentSection, keyName, it, keyValueFirst, valueHasOnlySpaces);
+				continue;
+			}
+
+			// Handle line start:
+			if (state == State::Unknown)
+			{
+				// Skip whitespaces in the front:
+				if (isSpace(character))
+					continue;
+
+				if (character == ';')
+					state = State::ReadingComment;
+				else if (character == '[')
+				{
+					state = State::ReadingSectionName;
+					sectionNameFirst = it;
+					++sectionNameFirst;
+				}
+				else
+				{
+					state = State::ReadingKeyName;
+					keyNameFirst = it;
+				}
+			}
+			else if (state == State::ReadingSectionName)
+			{
+				if (character == ']')
+				{
+					state = State::Unknown;
+					currentSection = std::string(sectionNameFirst, it);
+				}
+			}
+			else if (state == State::ReadingKeyName)
+			{
+				if (character == '=')
+				{
+					// Start reading value:
+					state = State::ReadingKeyValue;
+					keyName = std::string(keyNameFirst, it);
+					keyValueFirst = it;
+					++keyValueFirst;
+
+					valueHasOnlySpaces = true;
+				}
+			}
+			else if (state == State::ReadingKeyValue)
+			{
+				if (!isSpace(character))
+					valueHasOnlySpaces = false;
+			}
+		}
+
+		handleLineEnd(result, state, currentSection, keyName, last_, keyValueFirst, valueHasOnlySpaces);
+
+		return result;
+	}
 
 	/// <summary>
 	/// Reads INI-formatted string and returns map of read properties.
@@ -42,100 +144,7 @@ public:
 	/// </returns>
 	static ReadResultType read(char const* data_, std::size_t numberOfCharacters_)
 	{
-		
-		// Types and settings:
-		using SizeType = std::string::size_type;
-
-		// Memory efficiency settings:
-		constexpr int sectionNamePreReservedBytes	= 64;
-		constexpr int keyNamePreReservedBytes		= 64;
-		constexpr int keyValuePreReservedBytes		= 256;
-
-		ReadResultType result;
-		State state = State::Unknown;
-
-		std::string currentSection;
-
-		std::string sectionName;
-		std::string keyName;
-		std::string keyValue;
-
-		bool valueHasOnlySpaces = true;
-
-		char const* end = data_ + numberOfCharacters_;
-		for (char const* it = data_; it != end; it++)
-		{
-			// Skip the '\r' character.
-			if (*it == '\r')
-				continue;
-
-			// Handle new line character:
-			if (*it == '\n')
-			{
-				handleLineEnd(result, state, currentSection, sectionName, keyName, keyValue, valueHasOnlySpaces);
-				continue;
-			}
-
-			// Handle line start:
-			if (state == State::Unknown)
-			{
-				// Skip whitespaces in the front:
-				if (std::isspace(*it))
-					continue;
-
-				if (*it == ';')
-					state = State::ReadingComment;
-				else if (*it == '[')
-				{
-					state = State::ReadingSectionName;
-					sectionName.clear();
-					sectionName.reserve(sectionNamePreReservedBytes);
-				}
-				else
-				{
-					state = State::ReadingKeyName;
-					keyName.clear();
-					keyName.reserve(keyNamePreReservedBytes);
-
-					keyName += *it;
-				}
-			}
-			else if (state == State::ReadingSectionName)
-			{
-				if (*it == ']')
-				{
-					state = State::Unknown;
-					currentSection = sectionName;
-				}
-				else
-					sectionName += *it;
-			}
-			else if (state == State::ReadingKeyName)
-			{
-				if (*it == '=')
-				{
-					// Start reading value:
-					state = State::ReadingKeyValue;
-					keyValue.clear();
-					keyValue.reserve(keyValuePreReservedBytes);
-
-					valueHasOnlySpaces = true;
-				}
-				else
-					keyName += *it;
-			}
-			else if (state == State::ReadingKeyValue)
-			{
-				if (!std::isspace(*it))
-					valueHasOnlySpaces = false;
-
-				keyValue += *it;
-			}
-		}
-
-		handleLineEnd(result, state, currentSection, sectionName, keyName, keyValue, valueHasOnlySpaces);
-
-		return result;
+		return read(data_, data_ + numberOfCharacters_);
 	}
 
 	/// <summary>
@@ -155,8 +164,9 @@ private:
 	/// <summary>
 	/// Handles the line end while read algorithm is working. Written to avoid unnecessary repeating code.
 	/// </summary>
-	static void handleLineEnd(ReadResultType& result_, State & state_, std::string & currentSection_, std::string const & sectionName_,
-		std::string const & keyName_, std::string const & keyValue_, bool valueHasOnlySpaces_)
+	template <typename TForwardIterator>
+	static void handleLineEnd(ReadResultType& result_, State & state_, std::string const & currentSection_, std::string const & keyName_,
+		TForwardIterator currentIt_, TForwardIterator keyValueFirst_, bool valueHasOnlySpaces_)
 	{
 		std::string prefix = currentSection_.empty()
 			? ""
@@ -164,15 +174,14 @@ private:
 
 		if (state_ == State::ReadingKeyValue)
 		{
-			result_[prefix + keyName_] = valueHasOnlySpaces_ ? "" : keyValue_;
-		}
-		else if (state_ == State::ReadingKeyName)
-		{
-			// Line end while reading key name? Ignore that.
-		}
-		else if (state_ == State::ReadingSectionName)
-		{
-			currentSection_ = sectionName_;
+			if (valueHasOnlySpaces_)
+			{
+				result_[prefix + keyName_] = "";
+			}
+			else
+			{
+				result_[prefix + keyName_] = std::string(keyValueFirst_, currentIt_);
+			}
 		}
 
 		state_ = State::Unknown;
